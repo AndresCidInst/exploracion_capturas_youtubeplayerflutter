@@ -38,7 +38,9 @@ class _VideoWidgetState extends State<VideoWidget> {
           volumeChange();
         }
 
-        if (pastValues['position'] + 1 < _controller.value.position.inSeconds ||
+        /*
+
+          if (pastValues['position'] + 1 < _controller.value.position.inSeconds ||
             pastValues['position'] > _controller.value.position.inSeconds) {
           print('Entre acá');
           if (pastValues['position'] > _controller.value.position.inSeconds) {
@@ -48,8 +50,7 @@ class _VideoWidgetState extends State<VideoWidget> {
           }
         }
 
-        print(
-            "${pastValues['position']} | ${_controller.value.position.inSeconds}");
+        */
         pastValues = {
           'status': _controller.value.playerState,
           'volumen': _controller.value.volume,
