@@ -1,0 +1,144 @@
+import 'package:flutter/material.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+class VideoWidget extends StatefulWidget {
+  const VideoWidget({super.key});
+
+  @override
+  State<VideoWidget> createState() => _VideoWidgetState();
+}
+
+class _VideoWidgetState extends State<VideoWidget> {
+  late YoutubePlayerController _controller;
+  final List _capturas = [];
+  bool _inReduction = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId:
+          'SnXkhkEvNIM', // Reemplaza con la ID de tu video de YouTube
+      flags: const YoutubePlayerFlags(
+        autoPlay: true,
+        mute: true,
+        hideControls: false,
+      ),
+    );
+
+    Map pastValues = {'status': '', 'volumen': 100, 'dragging': false};
+    // Escucha cambios en el estado del reproductor de YouTube
+    _controller.addListener(() {
+      //Si empezó la reproducción del video y hay cambios en uno de los valores a capturar
+      if (_controller.value.hasPlayed && _inReduction) {
+        if (pastValues['status'] != _controller.value.playerState) {
+          captureVideoStatus();
+        } else if (pastValues['volume'] != _controller.value.volume) {
+          volumeChange();
+        }
+        pastValues = {
+          'status': _controller.value.playerState,
+          'volumen': _controller.value.volume,
+          'dragging': _controller.value.isDragging
+        };
+      } else {
+        if (_controller.value.hasPlayed != _inReduction) {
+          _capturas.add('Se reprodujo');
+          pastValues = pastValues = {
+            'status': _controller.value.playerState,
+            'volumen': _controller.value.volume,
+            'dragging': _controller.value.isDragging
+          };
+          _inReduction = true;
+        }
+      }
+    });
+  }
+
+  void captureVideoStatus() {
+    //Comprueba el estado del video
+    switch (_controller.value.playerState) {
+      case PlayerState.playing:
+        _capturas.add('Video reanudó');
+        break;
+      case PlayerState.paused:
+        _capturas.add('Video pausado');
+        break;
+      case PlayerState.ended:
+        _capturas.add('Video finalizado');
+        break;
+      default:
+        break;
+    }
+  }
+
+  void volumeChange() {
+    bool isMuted = false;
+
+    if (isMuted != (_controller.value.volume == 0)) {
+      if (_controller.value.volume == 0) {
+        _capturas.add("Se muteo");
+        isMuted = _controller.value.volume == 0;
+      } else {
+        _capturas.add("De desmuteo");
+        isMuted = _controller.value.volume != 0;
+      }
+    }
+  }
+
+  void seekTo() {
+    Duration initPosition = const Duration(seconds: 0);
+    Duration finalPosition = const Duration(seconds: 0);
+    if (initPosition.inSeconds != 0) {
+      if (initPosition.inSeconds < finalPosition.inSeconds) {
+        _capturas.add("Adelantó el video");
+      } else {
+        _capturas.add("Retrasó el video el video");
+      }
+    } else {
+      initPosition = _controller.value.position;
+    }
+  }
+
+  Map dataRecord(YoutubePlayerController controller) {
+    //Dentro del YoutubePlayerController, no hay nada que retorne un 'Future', también con YoutubePlayerMetaData
+    //De los datos requeridos para la captura
+    //La calidad está entregada como string
+    //velocidad de reproducción como double
+    //Volumen en int
+    //La Pantalla completa en bool, true: Sí está en pantalla completa, false: No está en pantalla completa
+    //El largo está entregado en una variable tipo 'duration'
+    return {
+      'quality': controller.value.playbackQuality,
+      'reproductionSpeed': controller.value.playbackRate,
+      'volume': controller.value.volume,
+      'fullScreen': controller.value.isFullScreen,
+      'large': controller.metadata.duration
+    };
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Placeholder(
+        child: Column(
+      children: [
+        YoutubePlayer(
+          controller: _controller,
+          showVideoProgressIndicator: true,
+          progressIndicatorColor: Colors.cyan,
+        ),
+        IconButton(
+            onPressed: () {
+              print("$_capturas");
+            },
+            icon: const Icon(Icons.add))
+      ],
+    ));
+  }
+}
