@@ -12,6 +12,7 @@ class _VideoWidgetState extends State<VideoWidget> {
   late YoutubePlayerController _controller;
   final List _capturas = [];
   bool _inReduction = false;
+  Map data = {};
 
   @override
   void initState() {
@@ -20,10 +21,10 @@ class _VideoWidgetState extends State<VideoWidget> {
       initialVideoId:
           'SnXkhkEvNIM', // Reemplaza con la ID de tu video de YouTube
       flags: const YoutubePlayerFlags(
-        autoPlay: true,
-        mute: true,
-        hideControls: false,
-      ),
+          autoPlay: true,
+          mute: true,
+          hideControls: false,
+          controlsVisibleAtStart: true),
     );
 
     Map pastValues = {'status': '', 'volumen': 100, 'dragging': false};
@@ -100,7 +101,7 @@ class _VideoWidgetState extends State<VideoWidget> {
     }
   }
 
-  Map dataRecord(YoutubePlayerController controller) {
+  dataRecord() {
     //Dentro del YoutubePlayerController, no hay nada que retorne un 'Future', también con YoutubePlayerMetaData
     //De los datos requeridos para la captura
     //La calidad está entregada como string
@@ -109,11 +110,13 @@ class _VideoWidgetState extends State<VideoWidget> {
     //La Pantalla completa en bool, true: Sí está en pantalla completa, false: No está en pantalla completa
     //El largo está entregado en una variable tipo 'duration'
     return {
-      'quality': controller.value.playbackQuality,
-      'reproductionSpeed': controller.value.playbackRate,
-      'volume': controller.value.volume,
-      'fullScreen': controller.value.isFullScreen,
-      'large': controller.metadata.duration
+      'quality': _controller.value.playbackQuality,
+      'reproductionSpeed': _controller.value.playbackRate,
+      'volume': _controller.value.volume,
+      'fullScreen': _controller.value.isFullScreen,
+      'large': _controller.metadata.duration,
+      'title': _controller.metadata.title,
+      'currentPosition': _controller.value.position
     };
   }
 
@@ -135,7 +138,9 @@ class _VideoWidgetState extends State<VideoWidget> {
         ),
         IconButton(
             onPressed: () {
-              print("$_capturas");
+              data = dataRecord();
+              print("$_capturas \n$data");
+              print('\n\n${_controller.value}');
             },
             icon: const Icon(Icons.add))
       ],
