@@ -27,7 +27,7 @@ class _VideoWidgetState extends State<VideoWidget> {
           controlsVisibleAtStart: true),
     );
 
-    Map pastValues = {'status': '', 'volumen': 100, 'dragging': false};
+    Map pastValues = {'status': '', 'volumen': 100, 'position': 0};
     // Escucha cambios en el estado del reproductor de YouTube
     _controller.addListener(() {
       //Si empezó la reproducción del video y hay cambios en uno de los valores a capturar
@@ -37,10 +37,23 @@ class _VideoWidgetState extends State<VideoWidget> {
         } else if (pastValues['volume'] != _controller.value.volume) {
           volumeChange();
         }
+
+        if (pastValues['position'] + 1 < _controller.value.position.inSeconds ||
+            pastValues['position'] > _controller.value.position.inSeconds) {
+          print('Entre acá');
+          if (pastValues['position'] > _controller.value.position.inSeconds) {
+            _capturas.add('Se atrasó');
+          } else {
+            _capturas.add('Se Adealntó');
+          }
+        }
+
+        print(
+            "${pastValues['position']} | ${_controller.value.position.inSeconds}");
         pastValues = {
           'status': _controller.value.playerState,
           'volumen': _controller.value.volume,
-          'dragging': _controller.value.isDragging
+          'position': _controller.value.position.inSeconds
         };
       } else {
         if (_controller.value.hasPlayed != _inReduction) {
@@ -48,7 +61,7 @@ class _VideoWidgetState extends State<VideoWidget> {
           pastValues = pastValues = {
             'status': _controller.value.playerState,
             'volumen': _controller.value.volume,
-            'dragging': _controller.value.isDragging
+            'position': _controller.value.position.inSeconds
           };
           _inReduction = true;
         }
@@ -84,20 +97,6 @@ class _VideoWidgetState extends State<VideoWidget> {
         _capturas.add("De desmuteo");
         isMuted = _controller.value.volume != 0;
       }
-    }
-  }
-
-  void seekTo() {
-    Duration initPosition = const Duration(seconds: 0);
-    Duration finalPosition = const Duration(seconds: 0);
-    if (initPosition.inSeconds != 0) {
-      if (initPosition.inSeconds < finalPosition.inSeconds) {
-        _capturas.add("Adelantó el video");
-      } else {
-        _capturas.add("Retrasó el video el video");
-      }
-    } else {
-      initPosition = _controller.value.position;
     }
   }
 
